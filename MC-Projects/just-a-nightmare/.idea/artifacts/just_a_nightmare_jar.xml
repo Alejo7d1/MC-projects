@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="just-a-nightmare:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/just_a_nightmare_jar</output-path>
+    <root id="archive" name="just-a-nightmare.jar">
+      <element id="module-output" name="just-a-nightmare" />
+    </root>
+  </artifact>
+</component>
