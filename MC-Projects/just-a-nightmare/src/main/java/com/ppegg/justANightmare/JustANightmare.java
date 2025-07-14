@@ -26,6 +26,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
     private File dataFolder;
 
+    //Enable the plugin and register events
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
@@ -35,15 +36,18 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         getLogger().info("JustANightmare enabled");
     }
 
+    //Disable the plugin and log a message
     @Override
     public void onDisable() {
         getLogger().info("JustANightmare disabled");
     }
 
+    // Generate a unique key for each item type
     private String itemKey(ItemStack item) {
         return item.getType().toString();
     }
 
+    // Clone the contents of an inventory to avoid modifying the original
     private ItemStack[] cloneContents(ItemStack[] original) {
         ItemStack[] clone = new ItemStack[original.length];
         for (int i = 0; i < original.length; i++) {
@@ -52,6 +56,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         return clone;
     }
 
+    // Apply the difference between two inventories
     private ItemStack[] applyDifference(ItemStack[] slept, ItemStack[] died) {
         Map<String, Integer> sleptCount = new HashMap<>();
         Map<String, ItemStack> sleptSamples = new HashMap<>();
@@ -100,6 +105,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         return result;
     }
 
+    //Saves the inventory data for a player when they click a bed
     private void saveSleepData(UUID uuid, ItemStack[] contents) {
         File file = new File(dataFolder, uuid + ".yml");
         YamlConfiguration config = new YamlConfiguration();
@@ -111,10 +117,12 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         }
     }
 
+    // Checks if the player has sleep data saved
     private boolean hasSleepData(UUID uuid) {
         return new File(dataFolder, uuid + ".yml").exists();
     }
 
+    // Loads the inventory data for a player who has a saved sleep state
     private ItemStack[] loadInventory(UUID uuid) {
         File file = new File(dataFolder, uuid + ".yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
@@ -122,6 +130,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         return list != null ? list.toArray(new ItemStack[0]) : new ItemStack[36];
     }
 
+    // Loads all sleep data from the data folder
     private void loadAllSleepData() {
         File[] files = dataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
         if (files == null) return;
@@ -130,6 +139,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         }
     }
 
+    // Event handler for player interaction with beds
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -145,6 +155,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         player.sendMessage("§5 Inventory saved");
     }
 
+    // Event handler for player death
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
@@ -154,10 +165,40 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
         deathInventory.put(uuid, cloneContents(player.getInventory().getContents()));
 
-        event.setKeepInventory(true);
-        event.getDrops().clear();
+        //Get death inventory contents
+        ItemStack[] saved = sleepInventory.containsKey(uuid) ? sleepInventory.get(uuid) : loadInventory(uuid);
+
+        // count saved items by type
+        Map<String, Integer> savedCount = new HashMap<>();
+        for (ItemStack item : saved) {
+            if (item != null && item.getType() != Material.AIR) {
+                String key = itemKey(item);
+                savedCount.put(key, savedCount.getOrDefault(key, 0) + item.getAmount());
+            }
+        }
+
+        // Remove from drops the items that were saved
+        List<ItemStack> drops = new ArrayList<>(event.getDrops());
+        Iterator<ItemStack> iterator = drops.iterator();
+        while (iterator.hasNext()) {
+            ItemStack drop = iterator.next();
+            String key = itemKey(drop);
+            int savedAmt = savedCount.getOrDefault(key, 0);
+            if (savedAmt > 0) {
+                int dropAmt = drop.getAmount();
+                if (dropAmt <= savedAmt) {
+                    iterator.remove(); // Remove the drop if it was fully saved
+                    savedCount.put(key, savedAmt - dropAmt); // Decrease the saved count
+                } else {
+                    drop.setAmount(dropAmt - savedAmt); // Reduce the drop amount
+                    savedCount.put(key, 0); // Set to zero since we used all saved items
+                }
+            }
+        }
     }
 
+
+    // Event handler for player respawn
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
