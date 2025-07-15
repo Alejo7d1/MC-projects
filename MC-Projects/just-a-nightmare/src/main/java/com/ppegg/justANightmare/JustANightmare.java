@@ -189,6 +189,15 @@ public final class JustANightmare extends JavaPlugin implements Listener {
             }
         }
 
+        // Count saved armor items
+        ItemStack[] savedArmor = sleepArmor.containsKey(uuid) ? sleepArmor.get(uuid) : loadArmor(uuid);
+        for (ItemStack item : savedArmor) {
+            if (item != null && item.getType() != Material.AIR) {
+                String key = itemKey(item);
+                savedCount.put(key, savedCount.getOrDefault(key, 0) + item.getAmount());
+            }
+        }
+
         // Remove from drops the items that were saved
         List<ItemStack> drops = event.getDrops();
         Iterator<ItemStack> iterator = drops.iterator();
