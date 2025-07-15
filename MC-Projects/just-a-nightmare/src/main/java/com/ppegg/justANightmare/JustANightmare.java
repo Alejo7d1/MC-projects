@@ -216,6 +216,26 @@ public final class JustANightmare extends JavaPlugin implements Listener {
                 }
             }
         }
+
+        // Remove from drops the armor that was saved
+        for (ItemStack savedArmorItem : savedArmor) {
+            if (savedArmorItem == null || savedArmorItem.getType() == Material.AIR) continue;
+            int toRemove = savedArmorItem.getAmount();
+            iterator = drops.iterator();
+            while (iterator.hasNext() && toRemove > 0) {
+                ItemStack drop = iterator.next();
+                if (drop.isSimilar(savedArmorItem)) {
+                    int dropAmt = drop.getAmount();
+                    if (dropAmt <= toRemove) {
+                        iterator.remove();
+                        toRemove -= dropAmt;
+                    } else {
+                        drop.setAmount(dropAmt - toRemove);
+                        toRemove = 0;
+                    }
+                }
+            }
+        }
     }
 
 
