@@ -132,6 +132,14 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         return list != null ? list.toArray(new ItemStack[0]) : new ItemStack[36];
     }
 
+    private ItemStack[] loadArmor(UUID uuid) {
+        File file = new File(dataFolder, uuid + ".yml");
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        List<?> list = config.getList("armor");
+        return list != null ? list.toArray(new ItemStack[4]) : new ItemStack[4];
+    }
+
+
     // Loads all sleep data from the data folder
     private void loadAllSleepData() {
         File[] files = dataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
@@ -218,11 +226,12 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
             if (hasSleep && hasDeath) {
                 ItemStack[] slept = sleepInventory.containsKey(uuid) ? sleepInventory.get(uuid) : loadInventory(uuid);
+                ItemStack[] sleptArmor = sleepArmor.containsKey(uuid) ? sleepArmor.get(uuid) : loadArmor(uuid);
 
                 ItemStack[] restoredContents = applyDifference(slept, deathInventory.get(uuid));
 
                 player.getInventory().setContents(restoredContents);
-                player.getInventory().setArmorContents(sleepArmor.getOrDefault(uuid, new ItemStack[4]));
+                player.getInventory().setArmorContents(sleptArmor);
                 player.sendMessage("§5It was just a nightmare...");
             } else {
                 player.sendMessage("§cYou are nothing");
