@@ -179,19 +179,10 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
         //Get death inventory contents
         ItemStack[] saved = sleepInventory.containsKey(uuid) ? sleepInventory.get(uuid) : loadInventory(uuid);
-        ItemStack[] savedArmor = sleepArmor.containsKey(uuid) ? sleepArmor.get(uuid) : loadArmor(uuid);
 
         // count saved items by type
         Map<String, Integer> savedCount = new HashMap<>();
         for (ItemStack item : saved) {
-            if (item != null && item.getType() != Material.AIR) {
-                String key = itemKey(item);
-                savedCount.put(key, savedCount.getOrDefault(key, 0) + item.getAmount());
-            }
-        }
-
-        // Count saved armor items
-        for (ItemStack item : savedArmor) {
             if (item != null && item.getType() != Material.AIR) {
                 String key = itemKey(item);
                 savedCount.put(key, savedCount.getOrDefault(key, 0) + item.getAmount());
