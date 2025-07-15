@@ -178,7 +178,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         }
 
         // Remove from drops the items that were saved
-        List<ItemStack> drops = new ArrayList<>(event.getDrops());
+        List<ItemStack> drops = event.getDrops();
         Iterator<ItemStack> iterator = drops.iterator();
         while (iterator.hasNext()) {
             ItemStack drop = iterator.next();
