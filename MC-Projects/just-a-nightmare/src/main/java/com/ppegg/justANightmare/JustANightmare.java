@@ -179,6 +179,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
         //Get death inventory contents
         ItemStack[] saved = sleepInventory.containsKey(uuid) ? sleepInventory.get(uuid) : loadInventory(uuid);
+        ItemStack[] savedArmor = sleepArmor.containsKey(uuid) ? sleepArmor.get(uuid) : loadArmor(uuid);
 
         // count saved items by type
         Map<String, Integer> savedCount = new HashMap<>();
@@ -190,7 +191,6 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         }
 
         // Count saved armor items
-        ItemStack[] savedArmor = sleepArmor.containsKey(uuid) ? sleepArmor.get(uuid) : loadArmor(uuid);
         for (ItemStack item : savedArmor) {
             if (item != null && item.getType() != Material.AIR) {
                 String key = itemKey(item);
@@ -203,6 +203,8 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         Iterator<ItemStack> iterator = drops.iterator();
         while (iterator.hasNext()) {
             ItemStack drop = iterator.next();
+            if (drop == null || drop.getType() == Material.AIR) continue;
+
             String key = itemKey(drop);
             int savedAmt = savedCount.getOrDefault(key, 0);
             if (savedAmt > 0) {
@@ -217,25 +219,6 @@ public final class JustANightmare extends JavaPlugin implements Listener {
             }
         }
 
-        // Remove from drops the armor that was saved
-        for (ItemStack savedArmorItem : savedArmor) {
-            if (savedArmorItem == null || savedArmorItem.getType() == Material.AIR) continue;
-            int toRemove = savedArmorItem.getAmount();
-            iterator = drops.iterator();
-            while (iterator.hasNext() && toRemove > 0) {
-                ItemStack drop = iterator.next();
-                if (drop.isSimilar(savedArmorItem)) {
-                    int dropAmt = drop.getAmount();
-                    if (dropAmt <= toRemove) {
-                        iterator.remove();
-                        toRemove -= dropAmt;
-                    } else {
-                        drop.setAmount(dropAmt - toRemove);
-                        toRemove = 0;
-                    }
-                }
-            }
-        }
     }
 
 
