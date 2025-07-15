@@ -23,7 +23,6 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
     private final Map<UUID, ItemStack[]> sleepInventory = new HashMap<>();
     private final Map<UUID, ItemStack[]> deathInventory = new HashMap<>();
-    private final Map<UUID, ItemStack[]> sleepArmor = new HashMap<>();
 
     private File dataFolder;
 
@@ -107,11 +106,10 @@ public final class JustANightmare extends JavaPlugin implements Listener {
     }
 
     //Saves the inventory data for a player when they click a bed
-    private void saveSleepData(UUID uuid, ItemStack[] contents, ItemStack[] armorContents) {
+    private void saveSleepData(UUID uuid, ItemStack[] contents){
         File file = new File(dataFolder, uuid + ".yml");
         YamlConfiguration config = new YamlConfiguration();
         config.set("inventory", contents);
-        config.set("armor", armorContents);
         try {
             config.save(file);
         } catch (IOException e) {
@@ -130,13 +128,6 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         List<?> list = config.getList("inventory");
         return list != null ? list.toArray(new ItemStack[0]) : new ItemStack[36];
-    }
-
-    private ItemStack[] loadArmor(UUID uuid) {
-        File file = new File(dataFolder, uuid + ".yml");
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        List<?> list = config.getList("armor");
-        return list != null ? list.toArray(new ItemStack[4]) : new ItemStack[4];
     }
 
 
@@ -162,8 +153,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         ItemStack[] contents = cloneContents(player.getInventory().getContents());
         ItemStack[] armorContents = cloneContents(player.getInventory().getArmorContents());
         sleepInventory.put(uuid, contents);
-        sleepArmor.put(uuid, armorContents);
-        saveSleepData(uuid, contents, armorContents);
+        saveSleepData(uuid, contents);
         player.sendMessage("§5 Inventory saved");
     }
 
@@ -229,12 +219,10 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
             if (hasSleep && hasDeath) {
                 ItemStack[] slept = sleepInventory.containsKey(uuid) ? sleepInventory.get(uuid) : loadInventory(uuid);
-                ItemStack[] sleptArmor = sleepArmor.containsKey(uuid) ? sleepArmor.get(uuid) : loadArmor(uuid);
 
                 ItemStack[] restoredContents = applyDifference(slept, deathInventory.get(uuid));
 
                 player.getInventory().setContents(restoredContents);
-                player.getInventory().setArmorContents(sleptArmor);
                 player.sendMessage("§5It was just a nightmare...");
             } else {
                 player.sendMessage("§cYou are nothing");
