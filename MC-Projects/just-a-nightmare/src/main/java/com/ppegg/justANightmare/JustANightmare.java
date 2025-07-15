@@ -23,6 +23,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
     private final Map<UUID, ItemStack[]> sleepInventory = new HashMap<>();
     private final Map<UUID, ItemStack[]> deathInventory = new HashMap<>();
+    private final Map<UUID, ItemStack[]> sleepArmor = new HashMap<>();
 
     private File dataFolder;
 
@@ -106,10 +107,11 @@ public final class JustANightmare extends JavaPlugin implements Listener {
     }
 
     //Saves the inventory data for a player when they click a bed
-    private void saveSleepData(UUID uuid, ItemStack[] contents) {
+    private void saveSleepData(UUID uuid, ItemStack[] contents, ItemStack[] armorContents) {
         File file = new File(dataFolder, uuid + ".yml");
         YamlConfiguration config = new YamlConfiguration();
         config.set("inventory", contents);
+        config.set("armor", armorContents);
         try {
             config.save(file);
         } catch (IOException e) {
@@ -150,8 +152,10 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         UUID uuid = player.getUniqueId();
 
         ItemStack[] contents = cloneContents(player.getInventory().getContents());
+        ItemStack[] armorContents = cloneContents(player.getInventory().getArmorContents());
         sleepInventory.put(uuid, contents);
-        saveSleepData(uuid, contents);
+        sleepArmor.put(uuid, armorContents);
+        saveSleepData(uuid, contents, armorContents);
         player.sendMessage("§5 Inventory saved");
     }
 
@@ -218,6 +222,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
                 ItemStack[] restoredContents = applyDifference(slept, deathInventory.get(uuid));
 
                 player.getInventory().setContents(restoredContents);
+                player.getInventory().setArmorContents(sleepArmor.getOrDefault(uuid, new ItemStack[4]));
                 player.sendMessage("§5It was just a nightmare...");
             } else {
                 player.sendMessage("§cYou are nothing");
