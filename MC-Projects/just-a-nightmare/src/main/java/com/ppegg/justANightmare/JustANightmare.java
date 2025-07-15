@@ -151,7 +151,6 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         UUID uuid = player.getUniqueId();
 
         ItemStack[] contents = cloneContents(player.getInventory().getContents());
-        ItemStack[] armorContents = cloneContents(player.getInventory().getArmorContents());
         sleepInventory.put(uuid, contents);
         saveSleepData(uuid, contents);
         player.sendMessage("§5 Inventory saved");
