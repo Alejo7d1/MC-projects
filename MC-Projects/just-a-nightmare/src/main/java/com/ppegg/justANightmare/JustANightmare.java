@@ -26,7 +26,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
     private File dataFolder;
 
-    //Enable the plugin and register events
+    // Enable the plugin and register events
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
@@ -36,7 +36,7 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         getLogger().info("JustANightmare enabled");
     }
 
-    //Disable the plugin and log a message
+    // Disable the plugin and log a message
     @Override
     public void onDisable() {
         getLogger().info("JustANightmare disabled");
@@ -97,16 +97,11 @@ public final class JustANightmare extends JavaPlugin implements Listener {
             }
         }
 
-        ItemStack[] result = new ItemStack[Math.max(slept.length, resultItems.size())];
-        for (int i = 0; i < result.length && i < resultItems.size(); i++) {
-            result[i] = resultItems.get(i);
-        }
-
-        return result;
+        return resultItems.toArray(new ItemStack[0]);
     }
 
-    //Saves the inventory data for a player when they click a bed
-    private void saveSleepData(UUID uuid, ItemStack[] contents){
+    // Saves the inventory data for a player when they click a bed
+    private void saveSleepData(UUID uuid, ItemStack[] contents) {
         File file = new File(dataFolder, uuid + ".yml");
         YamlConfiguration config = new YamlConfiguration();
         config.set("inventory", contents);
@@ -129,7 +124,6 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         List<?> list = config.getList("inventory");
         return list != null ? list.toArray(new ItemStack[0]) : new ItemStack[36];
     }
-
 
     // Loads all sleep data from the data folder
     private void loadAllSleepData() {
@@ -166,10 +160,10 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
         deathInventory.put(uuid, cloneContents(player.getInventory().getContents()));
 
-        //Get death inventory contents
+        // Get death inventory contents
         ItemStack[] saved = sleepInventory.containsKey(uuid) ? sleepInventory.get(uuid) : loadInventory(uuid);
 
-        // count saved items by type
+        // Count saved items by type
         Map<String, Integer> savedCount = new HashMap<>();
         for (ItemStack item : saved) {
             if (item != null && item.getType() != Material.AIR) {
@@ -190,17 +184,15 @@ public final class JustANightmare extends JavaPlugin implements Listener {
             if (savedAmt > 0) {
                 int dropAmt = drop.getAmount();
                 if (dropAmt <= savedAmt) {
-                    iterator.remove(); // Remove the drop if it was fully saved
-                    savedCount.put(key, savedAmt - dropAmt); // Decrease the saved count
+                    iterator.remove();
+                    savedCount.put(key, savedAmt - dropAmt);
                 } else {
-                    drop.setAmount(dropAmt - savedAmt); // Reduce the drop amount
-                    savedCount.put(key, 0); // Set to zero since we used all saved items
+                    drop.setAmount(dropAmt - savedAmt);
+                    savedCount.put(key, 0);
                 }
             }
         }
-
     }
-
 
     // Event handler for player respawn
     @EventHandler
@@ -218,10 +210,22 @@ public final class JustANightmare extends JavaPlugin implements Listener {
 
             if (hasSleep && hasDeath) {
                 ItemStack[] slept = sleepInventory.containsKey(uuid) ? sleepInventory.get(uuid) : loadInventory(uuid);
-
                 ItemStack[] restoredContents = applyDifference(slept, deathInventory.get(uuid));
 
-                player.getInventory().setContents(restoredContents);
+                // Drop overflow items if inventory is full
+                List<ItemStack> excess = new ArrayList<>();
+                for (ItemStack item : restoredContents) {
+                    if (item == null || item.getType() == Material.AIR) continue;
+                    HashMap<Integer, ItemStack> left = player.getInventory().addItem(item);
+                    excess.addAll(left.values());
+                }
+
+                for (ItemStack extra : excess) {
+                    if (extra != null && extra.getType() != Material.AIR) {
+                        player.getWorld().dropItemNaturally(player.getLocation(), extra);
+                    }
+                }
+
                 player.sendMessage("§5It was just a nightmare...");
             } else {
                 player.sendMessage("§cYou are nothing");
@@ -231,3 +235,4 @@ public final class JustANightmare extends JavaPlugin implements Listener {
         }, 1L);
     }
 }
+

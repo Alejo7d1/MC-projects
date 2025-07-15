@@ -1,4 +1,4 @@
 name: just-a-nightmare
-version: '1.0-SNAPSHOT'
+version: '2.0'
 main: com.ppegg.justANightmare.JustANightmare
 api-version: '1.21'
